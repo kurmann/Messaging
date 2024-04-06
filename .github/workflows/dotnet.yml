@@ -19,10 +19,10 @@ jobs:
         dotnet-version: '8.0.x'
         
     - name: Restore dependencies for class library
-      run: dotnet restore src/ClassLibrary/ClassLibrary.csproj
+      run: dotnet restore src/Messaging/Messaging.csproj
 
     - name: Pack library
-      run: dotnet pack src/ClassLibrary/ClassLibrary.csproj --output ./nupkgs
+      run: dotnet pack src/Messaging/Messaging.csproj --output ./nupkgs
 
     # Veröffentlichen der NuGet-Pakete
     - name: Push NuGet and Symbol Packages
