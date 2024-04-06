@@ -47,13 +47,13 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <Deterministic>true</Deterministic>
 
-    <!-- Spezifisch für NuGet-Packetierung -->
-    <ItemGroup>
-      <None Include="..\..\README.md" Pack="true" PackagePath="\" />
-      <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
-      <None Include="..\..\PackageIcon.png" Pack="true" PackagePath="\" />
-    </ItemGroup>
-
   </PropertyGroup>
+
+  <!-- Spezifisch für NuGet-Packetierung -->
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\..\PackageIcon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
 </Project>
