@@ -14,10 +14,11 @@ Alle bemerkenswerten Änderungen an diesem Projekt werden im [Changelog](docs/Ch
 
 ### Hinzugefügt
 
-- Dieses ChangeLog eröffnet
+- Dieses ChangeLog in die Readme-Datei eingebettet damit, aufgrund Restriktionen von NuGet, dieses Changelog direkt in das NuGet-Packet eingebettet wird.
 
 ## Version 0.1.0-alpha - 2024-04-06
 
 ### Hinzugefügt
 
+- Dieses Changelog erstellt
 - Klassenbibliothek aus dem eigenen [.NET-Template](https://github.com/kurmann/Templates)
