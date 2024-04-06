@@ -26,8 +26,7 @@
 
     <!-- Die Release Notes gelten pro Version und sollten dementsprechend bei jeder neuen Version angepasst werden.  -->
     <!-- Die Notes dürfen Umbrüche enthalten, jedoch keine spezifischen Markdown-Formatierungen wie fett oder kursiv oder Überschriften -->
-    <PackageReleaseNotes>
-    </PackageReleaseNotes>
+    <PackageReleaseNotes>Siehe README.md für Details.</PackageReleaseNotes>
 
     <!-- Die README.md-Datei, die im NuGet-Paket eingebettet wird. Entspricht gleichzeitig der GitHub Readme-Datei. -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
