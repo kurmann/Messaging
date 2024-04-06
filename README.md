@@ -2,9 +2,9 @@
 
 Leichtgewichtiger, asynchroner Nachrichtendienst für .NET-Anwendungen für Typ-sichere Nachrichten-Kommunikation.
 
-## Changelog
+## Änderungsverlauf
 
-Alle bemerkenswerten Änderungen an diesem Projekt werden im [Changelog](docs/Changelog.md) festgehalten. Dieses Projekt hält sich an die Semantische Versionierung (SemVer).
+Dieses Projekt hält sich an die Semantische Versionierung (SemVer).
 
 ## Unveröffentlicht
 
