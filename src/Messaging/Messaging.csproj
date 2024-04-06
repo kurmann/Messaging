@@ -11,7 +11,7 @@
     <PackageId>Kurmann.Messaging</PackageId>
     
     <!-- Package-Tages zur Katalogisierung auf Nuget.org. Mehrere Tags mit Semikolen ";" trennen. -->
-    <PackageTags>Videoschnitt</PackageTags>
+    <PackageTags>Messaging; ClassLibrary</PackageTags>
 
     <!-- Die URL des GIT-Repositories -->
     <RepositoryUrl>https://github.com/kurmann/Messaging</RepositoryUrl>
