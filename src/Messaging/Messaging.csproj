@@ -1,0 +1,52 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageType>Dependency</PackageType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <RootNamespace>Kurmann.Messaging</RootNamespace>
+    <AssemblyName>Kurmann.Messaging</AssemblyName>
+    <PackageId>Kurmann.Messaging</PackageId>
+    
+    <!-- Package-Tages zur Katalogisierung auf Nuget.org. Mehrere Tags mit Semikolen ";" trennen. -->
+    <PackageTags>Videoschnitt</PackageTags>
+
+    <!-- Die URL des GIT-Repositories -->
+    <RepositoryUrl></RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+
+    <!-- Die Kurzbeschreibung des NuGet-Packets. Die längere Beschreibung wird als README.md eingebunden -->
+    <Description></Description>
+
+    <!-- Die Version sollte mit jeder Veröffentlichung auf Nuget.org erhöht werden. Die Release Notes dürfen Umbrüche 
+    enthalten, jedoch keine spezifischen Markdown-Formatierungen wie fett oder kursiv oder Überschriften -->
+    <PackageVersion>0.1.0-alpha</PackageVersion>
+
+    <!-- Die Release Notes gelten pro Version und sollten dementsprechend bei jeder neuen Version angepasst werden.  -->
+    <!-- Die Notes dürfen Umbrüche enthalten, jedoch keine spezifischen Markdown-Formatierungen wie fett oder kursiv oder Überschriften -->
+    <PackageReleaseNotes>Siehe README.md für Details.</PackageReleaseNotes>
+
+    <!-- Die README.md-Datei, die im NuGet-Paket eingebettet wird. Entspricht gleichzeitig der GitHub Readme-Datei. -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- Die Lizenzdatei, die im NuGet-Paket eingebettet wird (befindet sich im Wurzelverzeichnis). -->
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+
+    <!-- Das Icon, das im NuGet-Paket eingebettet wird (befindet sich im Wurzelverzeichnis). -->
+    <PackageIcon>PackageIcon.png</PackageIcon>
+
+    <!-- Assemblies und Symbol-Dateien werden im NuGet-Paket eingebettet. -->
+    <IncludeContentInPackage>true</IncludeContentInPackage>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <ContentTargetFolders>content</ContentTargetFolders>
+
+    <!-- Integration von Symbolen und Quelltext -->
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Deterministic>true</Deterministic>
+
+  </PropertyGroup>
+
+</Project>
