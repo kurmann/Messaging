@@ -22,7 +22,7 @@
 
     <!-- Die Version sollte mit jeder Veröffentlichung auf Nuget.org erhöht werden. Die Release Notes dürfen Umbrüche 
     enthalten, jedoch keine spezifischen Markdown-Formatierungen wie fett oder kursiv oder Überschriften -->
-    <PackageVersion>0.1.0-alpha</PackageVersion>
+    <PackageVersion>0.2.0-alpha</PackageVersion>
 
     <!-- Die Release Notes gelten pro Version und sollten dementsprechend bei jeder neuen Version angepasst werden.  -->
     <!-- Die Notes dürfen Umbrüche enthalten, jedoch keine spezifischen Markdown-Formatierungen wie fett oder kursiv oder Überschriften -->
@@ -54,6 +54,7 @@
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
     <None Include="..\..\PackageIcon.png" Pack="true" PackagePath="\" />
+    <None Include="..\..\docs\CHANGELOG.md" Pack="true" PackagePath="\docs" />
   </ItemGroup>
 
 </Project>
