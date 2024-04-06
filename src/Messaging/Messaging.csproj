@@ -14,7 +14,7 @@
     <PackageTags>Videoschnitt</PackageTags>
 
     <!-- Die URL des GIT-Repositories -->
-    <RepositoryUrl></RepositoryUrl>
+    <RepositoryUrl>https://github.com/kurmann/Messaging</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
 
     <!-- Die Kurzbeschreibung des NuGet-Packets. Die längere Beschreibung wird als README.md eingebunden -->
