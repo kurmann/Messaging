@@ -1,0 +1,31 @@
+name: .NET CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build_and_pack:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies for class library
+      run: dotnet restore src/ClassLibrary/ClassLibrary.csproj
+
+    - name: Pack library
+      run: dotnet pack src/ClassLibrary/ClassLibrary.csproj --output ./nupkgs
+
+    # Veröffentlichen der NuGet-Pakete
+    - name: Push NuGet and Symbol Packages
+      run: |
+        dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        dotnet nuget push ./nupkgs/*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
