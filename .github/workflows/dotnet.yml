@@ -1,31 +1,61 @@
 name: .NET CI/CD
 
+# Versionierungsstrategie:
+# Für den main-Branch werden Releases mit der in der .csproj-Datei festgelegten Version erstellt,
+# die manuell vor dem Merge angepasst werden sollte. Dies ermöglicht eine präzise Kontrolle über Major und Minor Releases.
+# Für alle anderen Branches werden automatische Zwischenreleases mit einem Datumssuffix generiert, um kontinuierliches Testing und Feedback
+# für Entwicklungsstände zu ermöglichen. Das Datumssuffix wird basierend auf dem aktuellen Datum und der Uhrzeit zum Zeitpunkt des Builds hinzugefügt,
+# was jede Version einzigartig macht.
+
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - '**'
 
 jobs:
   build_and_pack:
     runs-on: ubuntu-latest
 
+    env:
+      PROJECT_FILE: src/Messaging/Messaging.csproj
+
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-        
-    - name: Restore dependencies for class library
-      run: dotnet restore src/Messaging/Messaging.csproj
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Pack library
-      run: dotnet pack src/Messaging/Messaging.csproj --output ./nupkgs
+      - name: Install dependencies
+        run: dotnet restore ${{ env.PROJECT_FILE }}
 
-    # Veröffentlichen der NuGet-Pakete
-    - name: Push NuGet and Symbol Packages
-      run: |
-        dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-        dotnet nuget push ./nupkgs/*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      # Schritt: Lese die PackageVersion aus der .csproj Datei
+      # Dieser Schritt nutzt grep und sed, um den Wert des PackageVersion-Elements aus der .csproj-Datei zu extrahieren.
+      # Der extrahierte Wert wird dann als Umgebungsvariable gesetzt, damit er in nachfolgenden Schritten verwendet werden kann.
+      - name: Read Package Version from .csproj and Set as Env Var
+        run: |
+          version=$(grep '<PackageVersion>' ${{ env.PROJECT_FILE }} | sed -n -e 's/.*<PackageVersion>\(.*\)<\/PackageVersion>.*/\1/p')
+          echo "Base version is $version"
+          echo "BASE_VERSION=$version" >> $GITHUB_ENV
+
+      # Schritt: Build und Pack
+      # Basierend auf dem Branch, der den Workflow ausgelöst hat, entscheidet dieser Schritt,
+      # ob ein normales Release (main-Branch) oder ein Zwischenrelease (andere Branches) durchgeführt wird.
+      # Für ein Zwischenrelease wird der ausgelesenen Basisversion ein Datumssuffix hinzugefügt.
+      # Das Datumssuffix wird basierend auf dem aktuellen Datum und der Uhrzeit zum Zeitpunkt des Builds generiert.
+      # Schema für Suffix: .preview.YYYYMMDDHHMMSS
+      - name: Build and Pack
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            dotnet pack ${{ env.PROJECT_FILE }} --configuration Release --output nupkgs
+          else
+            # Generiert das aktuelle Datum und Uhrzeit als Suffix im kompatiblen Format.
+            datetimeSuffix=$(date +"%Y%m%d%H%M") # Entfernt Punkte und führende Nullen in der Uhrzeit
+            version="${{ env.BASE_VERSION }}-preview.$datetimeSuffix"
+            dotnet pack ${{ env.PROJECT_FILE }} /p:PackageVersion=$version --configuration Release --output nupkgs
+            echo "Zwischenversion ist $version"
+          fi
+
+      - name: Push NuGet Package
+        run: dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
