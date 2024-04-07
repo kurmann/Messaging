@@ -36,7 +36,7 @@ jobs:
       - name: Read Package Version from .csproj and Set as Env Var
         run: |
           version=$(grep '<PackageVersion>' ${{ env.PROJECT_FILE }} | sed -n -e 's/.*<PackageVersion>\(.*\)<\/PackageVersion>.*/\1/p')
-          echo "Basisversion ist $version"
+          echo "Base version is $version"
           echo "BASE_VERSION=$version" >> $GITHUB_ENV
 
       # Schritt: Build und Pack
@@ -51,7 +51,7 @@ jobs:
             dateSuffix=$(date +"%Y%m%d%H%M")
             version="${{ env.BASE_VERSION }}-alpha-$dateSuffix"
             dotnet pack ${{ env.PROJECT_FILE }} /p:PackageVersion=$version --configuration Release --output nupkgs
-            echo "Zwischenversion ist $version"
+            echo "Preview version ist $version"
           fi
 
       - name: Push NuGet Package
