@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PROJECT_DIR: src/Messaging
+      PROJECT_DIR: src/Messaging/Messaging.csproj
 
     steps:
       - uses: actions/checkout@v4
@@ -51,10 +51,10 @@ jobs:
             # die Version wird direkt aus der .csproj-Datei gelesen.
             dotnet pack ${{ env.PROJECT_DIR }} --configuration Release --output nupkgs
           else
-            # Für Commits in anderen Branches fügen wir der Basisversion ein Datumssuffix hinzu,
-            # um eine einzigartige Zwischenversion zu erzeugen.
+            # Für Commits in anderen Branches fügen wir der Basisversion ein Präfix und ein Datumssuffix hinzu,
+            # um eine einzigartige Zwischenversion zu erzeugen. Das Präfix 'alpha-' stellt sicher, dass das Suffix gültig ist.
             dateSuffix=$(date +"%Y%m%d%H%M")
-            version="${{ steps.read_version.outputs.base_version }}-$dateSuffix"
+            version="${{ steps.read_version.outputs.base_version }}-alpha-$dateSuffix"
             dotnet pack ${{ env.PROJECT_DIR }} /p:PackageVersion=$version --configuration Release --output nupkgs
             echo "Zwischenversion ist $version"
           fi
