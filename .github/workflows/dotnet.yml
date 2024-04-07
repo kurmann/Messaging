@@ -18,6 +18,8 @@ jobs:
 
     env:
       PROJECT_FILE: src/Messaging/Messaging.csproj
+      # Deklaration der BASE_VERSION-Umgebungsvariable, die im Workflow mit der in der .csproj-Datei festgelegten Version überschrieben wird.
+      BASE_VERSION: 1.0.0
 
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +31,9 @@ jobs:
 
       - name: Install dependencies
         run: dotnet restore ${{ env.PROJECT_FILE }}
+
+      - name: Test
+        run: dotnet test ${{ env.PROJECT_FILE }}
 
       # Schritt: Lese die PackageVersion aus der .csproj Datei
       # Dieser Schritt nutzt grep und sed, um den Wert des PackageVersion-Elements aus der .csproj-Datei zu extrahieren.
