@@ -26,7 +26,7 @@
      bevor Änderungen in den 'main'-Branch gemerged werden. Dies stellt sicher, dass die Veröffentlichung die richtige Versionsnummer erhält.
 
      Zwischenreleases, die automatisch über GitHub Actions für Nicht-'main'-Branches generiert werden, fügen der hier definierten Basisversion 
-     ein datumsbasiertes Suffix hinzu (z.B. -alpha-YYYYMMDDHHMM), um die Einzigartigkeit und den Pre-Release-Status dieser Builds zu kennzeichnen.
+     ein datumsbasiertes Suffix hinzu (z.B. -preview.YYYYMMDDHHMM), um die Einzigartigkeit und den Pre-Release-Status dieser Builds zu kennzeichnen.
      Es ist nicht notwendig und wird nicht empfohlen, Pre-Release-Identifier wie 'alpha', 'beta', oder 'rc' manuell hier einzufügen,
      da dies über den CI/CD-Prozess automatisiert gehandhabt wird. Alle Änderungen, die spezifisch Pre-Release-Versionen betreffen,
      sollten stattdessen durch den CI/CD-Prozess gesteuert werden.
