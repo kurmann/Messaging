@@ -66,10 +66,13 @@ Dieses Projekt hält sich an die Semantische Versionierung (SemVer).
 
 ## 0.3.0 - 2024-04-07
 
+### Hinzugefügt
+
+- Vereinfachter Workflow für Zwischenreleases mit automatischer Datumsvergabe bei Vorschauversionen
+
 ### Geändert
 
 - Weiterentwicklungen des Legacy-Messagingdienstes
-- Vereinfachter Workflow für Zwischenreleases mit automatischer Datumsvergabe bei Vorschauversionen
 
 ## 0.2.0 - 2024-04-06
 
