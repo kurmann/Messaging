@@ -16,9 +16,6 @@ jobs:
   build_and_pack:
     runs-on: ubuntu-latest
 
-    env:
-      PROJECT_DIR: src/Messaging/Messaging.csproj
-
     steps:
       - uses: actions/checkout@v4
 
@@ -28,7 +25,9 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install dependencies
-        run: dotnet restore src/Messaging/Messaging.csproj
+        run: |
+          cd src
+          dotnet restore
 
       # Schritt: Lese die PackageVersion aus der .csproj Datei
       # Dieser Schritt nutzt grep und sed, um den Wert des PackageVersion-Elements aus der .csproj-Datei zu extrahieren.
@@ -36,7 +35,8 @@ jobs:
       - name: Read Package Version from .csproj
         id: read_version
         run: |
-          version=$(grep '<PackageVersion>' ${{ env.PROJECT_DIR }} | sed -n -e 's/.*<PackageVersion>\(.*\)<\/PackageVersion>.*/\1/p')
+          cd src
+          version=$(grep '<PackageVersion>' | sed -n -e 's/.*<PackageVersion>\(.*\)<\/PackageVersion>.*/\1/p')
           echo "Basisversion ist $version"
           echo "::set-output name=base_version::$version"
 
@@ -46,16 +46,17 @@ jobs:
       # Für ein Zwischenrelease wird der ausgelesenen Basisversion ein Datumssuffix hinzugefügt.
       - name: Build and Pack
         run: |
+          cd src
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             # Wenn der Commit im main-Branch ist, packen wir ohne Änderung der Version,
             # die Version wird direkt aus der .csproj-Datei gelesen.
-            dotnet pack ${{ env.PROJECT_DIR }} --configuration Release --output nupkgs
+            dotnet pack --configuration Release --output nupkgs
           else
             # Für Commits in anderen Branches fügen wir der Basisversion ein Präfix und ein Datumssuffix hinzu,
             # um eine einzigartige Zwischenversion zu erzeugen. Das Präfix 'preview.' stellt sicher, dass das Suffix gültig ist.
             dateSuffix=$(date +"%Y%m%d%H%M")
             version="${{ steps.read_version.outputs.base_version }}-preview.$dateSuffix"
-            dotnet pack ${{ env.PROJECT_DIR }} /p:PackageVersion=$version --configuration Release --output nupkgs
+            dotnet pack /p:PackageVersion=$version --configuration Release --output nupkgs
             echo "Zwischenversion ist $version"
           fi
 
