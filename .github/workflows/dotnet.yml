@@ -18,6 +18,8 @@ jobs:
 
     env:
       PROJECT_FILE: src/Messaging/Messaging.csproj
+      # Deklaration der BASE_VERSION-Umgebungsvariable, die im Workflow mit der in der .csproj-Datei festgelegten Version überschrieben wird.
+      BASE_VERSION: 1.0.0
 
     steps:
       - uses: actions/checkout@v4
