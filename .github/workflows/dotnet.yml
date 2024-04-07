@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      PROJECT_DIR: src/Messaging/Messaging.csproj
+      PROJECT_FILE: src/Messaging/Messaging.csproj
 
     steps:
       - uses: actions/checkout@v4
@@ -28,17 +28,16 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install dependencies
-        run: dotnet restore ${{ env.PROJECT_DIR }}
+        run: dotnet restore ${{ env.PROJECT_FILE }}
 
       # Schritt: Lese die PackageVersion aus der .csproj Datei
       # Dieser Schritt nutzt grep und sed, um den Wert des PackageVersion-Elements aus der .csproj-Datei zu extrahieren.
-      # Der extrahierte Wert wird dann als Output dieses Schrittes gesetzt, damit er in nachfolgenden Schritten verwendet werden kann.
-      - name: Read Package Version from .csproj
-        id: read_version
+      # Der extrahierte Wert wird dann als Umgebungsvariable gesetzt, damit er in nachfolgenden Schritten verwendet werden kann.
+      - name: Read Package Version from .csproj and Set as Env Var
         run: |
-          version=$(grep '<PackageVersion>' ${{ env.PROJECT_DIR }} | sed -n -e 's/.*<PackageVersion>\(.*\)<\/PackageVersion>.*/\1/p')
+          version=$(grep '<PackageVersion>' ${{ env.PROJECT_FILE }} | sed -n -e 's/.*<PackageVersion>\(.*\)<\/PackageVersion>.*/\1/p')
           echo "Basisversion ist $version"
-          echo "::set-output name=base_version::$version"
+          echo "BASE_VERSION=$version" >> $GITHUB_ENV
 
       # Schritt: Build und Pack
       # Basierend auf dem Branch, der den Workflow ausgelöst hat, entscheidet dieser Schritt,
@@ -47,15 +46,11 @@ jobs:
       - name: Build and Pack
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            # Wenn der Commit im main-Branch ist, packen wir ohne Änderung der Version,
-            # die Version wird direkt aus der .csproj-Datei gelesen.
-            dotnet pack ${{ env.PROJECT_DIR }} --configuration Release --output nupkgs
+            dotnet pack ${{ env.PROJECT_FILE }} --configuration Release --output nupkgs
           else
-            # Für Commits in anderen Branches fügen wir der Basisversion ein Präfix und ein Datumssuffix hinzu,
-            # um eine einzigartige Zwischenversion zu erzeugen. Das Präfix 'preview.' stellt sicher, dass das Suffix gültig ist.
             dateSuffix=$(date +"%Y%m%d%H%M")
-            version="${{ steps.read_version.outputs.base_version }}-preview.$dateSuffix"
-            dotnet pack ${{ env.PROJECT_DIR }} /p:PackageVersion=$version --configuration Release --output nupkgs
+            version="${{ env.BASE_VERSION }}-alpha-$dateSuffix"
+            dotnet pack ${{ env.PROJECT_FILE }} /p:PackageVersion=$version --configuration Release --output nupkgs
             echo "Zwischenversion ist $version"
           fi
 
