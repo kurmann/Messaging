@@ -51,7 +51,7 @@ jobs:
             dotnet pack ${{ env.PROJECT_FILE }} --configuration Release --output nupkgs
           else
             # Generiert das aktuelle Datum und Uhrzeit als Suffix im kompatiblen Format.
-            datetimeSuffix=$(date +"%Y%m%d%H%M%S") # Entfernt Punkte und führende Nullen in der Uhrzeit
+            datetimeSuffix=$(date +"%Y%m%d%H%M") # Entfernt Punkte und führende Nullen in der Uhrzeit
             version="${{ env.BASE_VERSION }}-preview.$datetimeSuffix"
             dotnet pack ${{ env.PROJECT_FILE }} /p:PackageVersion=$version --configuration Release --output nupkgs
             echo "Zwischenversion ist $version"
