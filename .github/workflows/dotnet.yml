@@ -25,7 +25,7 @@ jobs:
           dotnet-version: '8.0.x'
 
       - name: Install dependencies
-        run: dotnet restore
+        run: dotnet restore src/Messaging/Messaging.csproj
 
       # Schritt: Lese die PackageVersion aus der .csproj Datei
       # Dieser Schritt nutzt grep und sed, um den Wert des PackageVersion-Elements aus der .csproj-Datei zu extrahieren.
