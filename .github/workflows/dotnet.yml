@@ -2,30 +2,42 @@ name: .NET CI/CD
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches:
+      - '**'
 
 jobs:
   build_and_pack:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-        
-    - name: Restore dependencies for class library
-      run: dotnet restore src/Messaging/Messaging.csproj
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x'
 
-    - name: Pack library
-      run: dotnet pack src/Messaging/Messaging.csproj --output ./nupkgs
+      - name: Install dependencies
+        run: dotnet restore
 
-    # Veröffentlichen der NuGet-Pakete
-    - name: Push NuGet and Symbol Packages
-      run: |
-        dotnet nuget push ./nupkgs/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
-        dotnet nuget push ./nupkgs/*.snupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: Read Package Version from .csproj
+        id: read_version
+        run: |
+          csprojFile='src/Messaging/Messaging.csproj'
+          version=$(grep '<PackageVersion>' "$csprojFile" | sed -n -e 's/.*<PackageVersion>\(.*\)<\/PackageVersion>.*/\1/p')
+          echo "Basisversion ist $version"
+          echo "::set-output name=base_version::$version"
+
+      - name: Build and Pack
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            dotnet pack --configuration Release --output nupkgs
+          else
+            dateSuffix=$(date +"%Y%m%d%H%M")
+            version="${{ steps.read_version.outputs.base_version }}-$dateSuffix"
+            dotnet pack /p:PackageVersion=$version --configuration Release --output nupkgs
+            echo "Zwischenversion ist $version"
+          fi
+
+      - name: Push NuGet Package
+        run: dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
