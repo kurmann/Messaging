@@ -8,6 +8,12 @@ Dieses Projekt hält sich an die Semantische Versionierung (SemVer).
 
 ## Unveröffentlicht
 
+- Vereinfachter Workflow für Zwischenreleases
+
+## 0.3.0 - 2024-04-07
+
+### Geändert
+
 - Weiterentwicklungen des Legacy-Messagingdienstes
 
 ## 0.2.0 - 2024-04-06

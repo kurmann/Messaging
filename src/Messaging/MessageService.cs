@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Logging;
 
 namespace Kurmann.Messaging;
 public interface IEventMessage { }
@@ -21,97 +22,164 @@ public abstract class EventMessageBase : IEventMessage
 public interface IMessageService
 {
     // Sendet eine Nachricht eines beliebigen Typs.
-    void Publish<TMessage>(TMessage message) where TMessage : IEventMessage;
+    Task Publish<TMessage>(TMessage message) where TMessage : IEventMessage;
 
     // Abonniert eine Nachricht eines beliebigen Typs mit einem Handler.
-    void Subscribe<TMessage>(Action<TMessage> handler) where TMessage : IEventMessage;
+    void Subscribe<TMessage>(Func<TMessage, Task> handler) where TMessage : IEventMessage;
 
     // Deabonniert eine Nachricht eines beliebigen Typs mit einem Handler.
-    void Unsubscribe<TMessage>(Action<TMessage> handler) where TMessage : IEventMessage;
+    void Unsubscribe<TMessage>(Func<TMessage, Task> handler) where TMessage : IEventMessage;
 }
 
-/// <summary>
-/// Verantwortlich für das Senden und Empfangen von Nachrichten.
-/// </summary>
-/// <remarks>
-/// Dieser Service ist ein einfacher Event-Bus, der Nachrichten an registrierte Handler sendet.
-/// </remarks>
-/// <seealso cref="IMessageService" />
-/// <seealso cref="IEventMessage" />
-/// <seealso cref="EventMessageBase" />
-/// <seealso cref="IEventMessage" />
-//
-// Einige wichtige Punkte zur Implementierung:
-//
-// Thread-Sicherheit: Durch die Verwendung von lock beim Aktualisieren der Handler-Listen wird sichergestellt, dass die Operationen 
-// threadsicher sind. Dies verhindert, dass zwei Threads gleichzeitig die Liste der Handler modifizieren.
-// Verwendung von ConcurrentDictionary: Die Verwendung von ConcurrentDictionary anstelle von Dictionary stellt sicher, dass das
-//
-// Hinzufügen und Entfernen von Einträgen threadsicher ist.
-// Verwendung von ToList() bei Iteration: Durch das Kopieren der Liste vor der Iteration wird sichergestellt, dass die Iteration
-// threadsicher ist. Dies verhindert, dass ein anderer Thread die Liste während der Iteration modifiziert.
-//
-// Performance: Die Verwendung von lock kann zu einem Engpass führen, wenn viele Threads versuchen, gleichzeitig zu abonnieren oder zu 
-// deabonnieren. Dies ist in der Regel in Hochlast-Szenarien relevant. In den meisten Anwendungsfällen sollte dies jedoch kein Problem darstellen.
-//
-// Liste kopieren vor der Modifikation: Durch das Kopieren der Liste vor der Modifikation und das Ersetzen der alten Liste im Dictionary 
-// wird die Unveränderlichkeit der Listen für außenstehende Betrachter sichergestellt. Das bedeutet, dass keine Änderungen an der 
-// Liste vorgenommen werden, während ein anderer Thread sie möglicherweise durchläuft.
 public class MessageService : IMessageService
 {
-    private readonly ConcurrentDictionary<Type, List<Delegate>> _handlers = new();
+    private readonly ConcurrentDictionary<Type, List<Func<IEventMessage, Task>>> _handlers = new();
+    private readonly ILogger<MessageService> _logger;
 
-    public void Publish<TMessage>(TMessage message) where TMessage : IEventMessage
+    public MessageService(ILogger<MessageService> logger)
     {
-        if (_handlers.TryGetValue(typeof(TMessage), out var subscribers))
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    /// <summary>
+    /// Veröffentlicht eine Nachricht an alle abonnierten Handler des Nachrichtentyps.
+    /// </summary>
+    /// <typeparam name="TMessage">Der Typ der Nachricht, die veröffentlicht wird.</typeparam>
+    /// <param name="message">Die Nachricht, die an die Handler gesendet wird.</param>
+    /// <returns>Eine Task, die die asynchrone Operation darstellt.</returns>
+    public async Task Publish<TMessage>(TMessage message) where TMessage : IEventMessage
+    {
+        // Ermittelt den Nachrichtentyp des zu veröffentlichenden Ereignisses.
+        Type messageType = typeof(TMessage);
+
+        // Versucht, eine Liste von Handlern basierend auf dem Nachrichtentyp zu erhalten.
+        if (_handlers.TryGetValue(messageType, out var subscribers))
         {
-            foreach (var handler in subscribers.ToList()) // ToList() für Thread-Sicherheit bei Iteration
+            // Konvertiert die Liste der Abonnenten in eine neue Liste, um Thread-Sicherheit während der Iteration zu gewährleisten.
+            // Dies verhindert Änderungen an der Liste während des Durchlaufs der Handler.
+            var safeSubscribers = subscribers?.ToList();
+            
+            // Überprüft, ob die Liste der Abonnenten nicht null ist, bevor fortfahren wird.
+            if (safeSubscribers != null)
             {
-                handler.DynamicInvoke(message);
+                // Loggt Informationen über das Veröffentlichen einer Nachricht.
+                _logger.LogInformation($"Publishing message of type {messageType.Name} to {safeSubscribers.Count} subscribers.");
+
+                // Iteriert durch die sichere Liste von Handlern und ruft jeden Handler auf.
+                foreach (var handler in safeSubscribers)
+                {
+                    try
+                    {
+                        // Ruft den Handler asynchron auf und wartet auf dessen Fertigstellung.
+                        await handler(message).ConfigureAwait(false);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Loggt Fehler, die während der Verarbeitung durch den Handler auftreten.
+                        _logger.LogError(ex, $"Error during message handling by {handler.Method.Name}.");
+                    }
+                }
             }
+        }
+        else
+        {
+            // Loggt eine Warnung, falls für den Nachrichtentyp keine Handler abonniert wurden.
+            _logger.LogWarning($"No subscribers found for message type {messageType.Name}.");
         }
     }
 
-    public void Subscribe<TMessage>(Action<TMessage> handler) where TMessage : IEventMessage
+    /// <summary>
+    /// Abonniert einen Handler für einen spezifischen Nachrichtentyp.
+    /// </summary>
+    /// <typeparam name="TMessage">Der Typ der Nachricht, für den der Handler abonniert wird.</typeparam>
+    /// <param name="handler">Der Handler, der aufgerufen wird, wenn eine Nachricht dieses Typs veröffentlicht wird.</param>
+    public void Subscribe<TMessage>(Func<TMessage, Task> handler) where TMessage : IEventMessage
     {
-        var key = typeof(TMessage);
-        _handlers.AddOrUpdate(key,
-            _ => [handler],
+        // Bestimmt den Typ der Nachricht, auf die abonniert wird.
+        Type messageType = typeof(TMessage);
+        
+        // Erstellt einen allgemeinen Handler, der das typisierte Handler-Funktion umschließt.
+        Func<IEventMessage, Task> genericHandler = (message) => handler((TMessage)message);
+
+        // Fügt den Handler der ConcurrentDictionary hinzu oder aktualisiert sie, wenn sie bereits existiert.
+        _handlers.AddOrUpdate(messageType,
+            // Fügt eine neue Liste mit dem gegebenen Handler hinzu, falls noch kein Eintrag existiert.
+            new List<Func<IEventMessage, Task>> { genericHandler },
+            // Aktualisiert den bestehenden Eintrag, indem der neue Handler zur Liste hinzugefügt wird.
             (_, existingHandlers) =>
             {
+                // Synchronisiert den Zugriff auf die Liste, um Thread-Sicherheit zu gewährleisten.
                 lock (existingHandlers)
                 {
-                    var newHandlersList = new List<Delegate>(existingHandlers) { handler };
+                    // Überprüft, ob die vorhandene Liste von Handlern nicht null ist.
+                    if (existingHandlers == null) // Null-Check hinzugefügt als Absicherung gegen Race-Conditions.
+                    {
+                        _logger.LogError($"ExistingHandlers list was null for message type {messageType.Name}");
+                        // Gibt eine neue Liste zurück, falls existingHandlers aus irgendeinem Grund null ist.
+                        return new List<Func<IEventMessage, Task>> { genericHandler };
+                    }
+                    
+                    // Erstellt eine Kopie der vorhandenen Liste, um Manipulationen sicher durchzuführen.
+                    var newHandlersList = new List<Func<IEventMessage, Task>>(existingHandlers);
+                    // Fügt den neuen Handler der Kopie hinzu.
+                    newHandlersList.Add(genericHandler);
+                    // Loggt die Hinzufügung des neuen Handlers.
+                    _logger.LogInformation($"Subscriber {handler.Method.Name} added for message type {messageType.Name}.");
+                    // Gibt die aktualisierte Liste zurück.
                     return newHandlersList;
                 }
             }
         );
     }
 
-    public void Unsubscribe<TMessage>(Action<TMessage> handler) where TMessage : IEventMessage
+    /// <summary>
+    /// Hebt das Abonnement eines Handlers für einen spezifischen Nachrichtentyp auf.
+    /// </summary>
+    /// <typeparam name="TMessage">Der Typ der Nachricht, für den das Abonnement aufgehoben wird.</typeparam>
+    /// <param name="handler">Der Handler, dessen Abonnement aufgehoben wird.</param>
+    public void Unsubscribe<TMessage>(Func<TMessage, Task> handler) where TMessage : IEventMessage
     {
-        var key = typeof(TMessage);
-        if (_handlers.TryGetValue(key, out var subscribers))
+        // Bestimmt den Typ der Nachricht, von dem der Handler abgemeldet wird.
+        Type messageType = typeof(TMessage);
+        // Erstellt einen generischen Handler basierend auf dem spezifischen typisierten Handler.
+        Func<IEventMessage, Task> genericHandler = (message) => handler((TMessage)message);
+
+        // Versucht, die Liste der Handler für den Nachrichtentyp abzurufen.
+        if (_handlers.TryGetValue(messageType, out var subscribers))
         {
+            // Synchronisiert den Zugriff auf die Handlerliste.
             lock (subscribers)
             {
-                if (subscribers.Contains(handler))
+                // Überprüft, ob die subscribers-Liste tatsächlich Handler enthält.
+                if (subscribers != null)
                 {
-                    var newSubscribersList = new List<Delegate>(subscribers);
-                    newSubscribersList.Remove(handler);
-                    
-                    // Ersetze die alte Liste mit der neuen, aktualisierten Liste
-                    if (newSubscribersList.Count > 0)
+                    // Entfernt den Handler aus der Liste und prüft, ob die Entfernung erfolgreich war.
+                    bool removed = subscribers.RemoveAll(h => h.Equals(genericHandler)) > 0;
+
+                    // Loggt die Entfernung des Handlers, falls erfolgreich.
+                    if (removed)
                     {
-                        _handlers[key] = newSubscribersList;
+                        _logger.LogInformation($"Subscriber {handler.Method.Name} removed from message type {messageType.Name}.");
                     }
-                    else
+
+                    // Entfernt den Eintrag aus dem Dictionary, wenn keine Handler mehr vorhanden sind.
+                    if (subscribers.Count == 0)
                     {
-                        // Wenn keine Subscriber mehr vorhanden sind, entferne den Eintrag aus dem Dictionary
-                        ((ICollection<KeyValuePair<Type, List<Delegate>>>)_handlers).Remove(new KeyValuePair<Type, List<Delegate>>(key, subscribers));
+                        _handlers.TryRemove(messageType, out _);
                     }
+                }
+                else
+                {
+                    // Loggt eine Warnung, falls die Liste der Handler nicht existiert.
+                    _logger.LogWarning($"Handler list for message type {messageType.Name} was already null on unsubscribe.");
                 }
             }
         }
+        else
+        {
+            // Loggt eine Information, falls für den Nachrichtentyp keine Handler gefunden wurden.
+            _logger.LogInformation($"No handlers found for message type {messageType.Name} to unsubscribe.");
+        }
     }
+
 }
