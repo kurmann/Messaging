@@ -16,6 +16,9 @@ jobs:
   build_and_pack:
     runs-on: ubuntu-latest
 
+    env:
+      PROJECT_DIR: src/Messaging
+
     steps:
       - uses: actions/checkout@v4
 
@@ -33,8 +36,7 @@ jobs:
       - name: Read Package Version from .csproj
         id: read_version
         run: |
-          csprojFile='src/Messaging/Messaging.csproj' # Der Pfad zur .csproj-Datei
-          version=$(grep '<PackageVersion>' "$csprojFile" | sed -n -e 's/.*<PackageVersion>\(.*\)<\/PackageVersion>.*/\1/p')
+          version=$(grep '<PackageVersion>' ${{ env.PROJECT_DIR }} | sed -n -e 's/.*<PackageVersion>\(.*\)<\/PackageVersion>.*/\1/p')
           echo "Basisversion ist $version"
           echo "::set-output name=base_version::$version"
 
@@ -47,13 +49,13 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             # Wenn der Commit im main-Branch ist, packen wir ohne Änderung der Version,
             # die Version wird direkt aus der .csproj-Datei gelesen.
-            dotnet pack --configuration Release --output nupkgs
+            dotnet pack ${{ env.PROJECT_DIR }} --configuration Release --output nupkgs
           else
             # Für Commits in anderen Branches fügen wir der Basisversion ein Datumssuffix hinzu,
             # um eine einzigartige Zwischenversion zu erzeugen.
             dateSuffix=$(date +"%Y%m%d%H%M")
             version="${{ steps.read_version.outputs.base_version }}-$dateSuffix"
-            dotnet pack /p:PackageVersion=$version --configuration Release --output nupkgs
+            dotnet pack ${{ env.PROJECT_DIR }} /p:PackageVersion=$version --configuration Release --output nupkgs
             echo "Zwischenversion ist $version"
           fi
 
