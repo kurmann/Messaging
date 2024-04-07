@@ -1,27 +1,30 @@
+using Microsoft.Extensions.Logging.Abstractions;
+
 namespace Kurmann.Messaging.Tests;
 
 [TestClass]
 public class MessageServiceTest
 {
     [TestMethod]
-    public void TestSendMessage()
+    public async void TestSendMessage()
     {
         // Arrange
-        var messageService = new MessageService();
+        var logger = new NullLogger<MessageService>();
+        var messageService = new MessageService(logger);
         var message = new TestMessage
         {
             Content = "Hello World",
             Receiver = "John Doe"
         };
-        messageService.Subscribe<TestMessage>(m =>
+        messageService.Subscribe<TestMessage>(msg =>
         {
-            // Assert
-            Assert.AreEqual(message.Content, m.Content);
-            Assert.AreEqual(message.Receiver, m.Receiver);
+            Assert.AreEqual("Hello World", msg.Content);
+            Assert.AreEqual("John Doe", msg.Receiver);
+            return Task.CompletedTask;
         });
 
         // Act
-        messageService.Publish(message);
+        await messageService.Publish(message);
     }
 
 
