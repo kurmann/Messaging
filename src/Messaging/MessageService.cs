@@ -41,6 +41,12 @@ public class MessageService : IMessageService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
+    /// <summary>
+    /// Veröffentlicht eine Nachricht an alle abonnierten Handler des Nachrichtentyps.
+    /// </summary>
+    /// <typeparam name="TMessage">Der Typ der Nachricht, die veröffentlicht wird.</typeparam>
+    /// <param name="message">Die Nachricht, die an die Handler gesendet wird.</param>
+    /// <returns>Eine Task, die die asynchrone Operation darstellt.</returns>
     public async Task Publish<TMessage>(TMessage message) where TMessage : IEventMessage
     {
         // Ermittelt den Nachrichtentyp des zu veröffentlichenden Ereignisses.
@@ -82,6 +88,11 @@ public class MessageService : IMessageService
         }
     }
 
+    /// <summary>
+    /// Abonniert einen Handler für einen spezifischen Nachrichtentyp.
+    /// </summary>
+    /// <typeparam name="TMessage">Der Typ der Nachricht, für den der Handler abonniert wird.</typeparam>
+    /// <param name="handler">Der Handler, der aufgerufen wird, wenn eine Nachricht dieses Typs veröffentlicht wird.</param>
     public void Subscribe<TMessage>(Func<TMessage, Task> handler) where TMessage : IEventMessage
     {
         // Bestimmt den Typ der Nachricht, auf die abonniert wird.
@@ -121,6 +132,11 @@ public class MessageService : IMessageService
         );
     }
 
+    /// <summary>
+    /// Hebt das Abonnement eines Handlers für einen spezifischen Nachrichtentyp auf.
+    /// </summary>
+    /// <typeparam name="TMessage">Der Typ der Nachricht, für den das Abonnement aufgehoben wird.</typeparam>
+    /// <param name="handler">Der Handler, dessen Abonnement aufgehoben wird.</param>
     public void Unsubscribe<TMessage>(Func<TMessage, Task> handler) where TMessage : IEventMessage
     {
         // Bestimmt den Typ der Nachricht, von dem der Handler abgemeldet wird.
