@@ -43,16 +43,20 @@ jobs:
       # Basierend auf dem Branch, der den Workflow ausgelöst hat, entscheidet dieser Schritt,
       # ob ein normales Release (main-Branch) oder ein Zwischenrelease (andere Branches) durchgeführt wird.
       # Für ein Zwischenrelease wird der ausgelesenen Basisversion ein Datumssuffix hinzugefügt.
+      # Das Datumssuffix wird basierend auf dem aktuellen Datum und der Uhrzeit zum Zeitpunkt des Builds generiert.
+      # Schema für Suffix: .preview.YYYY.MM.DD.HHMMSS
       - name: Build and Pack
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             dotnet pack ${{ env.PROJECT_FILE }} --configuration Release --output nupkgs
           else
-            dateSuffix=$(date +"%Y%m%d%H%M")
-            version="${{ env.BASE_VERSION }}-alpha-$dateSuffix"
+            # Fügt das aktuelle Datum und Uhrzeit als Suffix hinzu, um eindeutige Zwischenreleases zu erzeugen.
+            datetimeSuffix=$(date +"%Y.%m.%d.%H%M%S")
+            version="${{ env.BASE_VERSION }}.preview.$datetimeSuffix"
             dotnet pack ${{ env.PROJECT_FILE }} /p:PackageVersion=$version --configuration Release --output nupkgs
-            echo "Preview version ist $version"
+            echo "Zwischenversion ist $version"
           fi
+
 
       - name: Push NuGet Package
         run: dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
