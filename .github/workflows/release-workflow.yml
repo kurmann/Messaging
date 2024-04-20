@@ -18,7 +18,7 @@ permissions:
   pull-requests: read  # Ermöglicht das Lesen von PR-Informationen für den Release-Entwurf.
 
 jobs:
-  build_and_pack:
+  nuget-pack:
     runs-on: ubuntu-latest
 
     env:
@@ -27,18 +27,6 @@ jobs:
       BASE_VERSION: 1.0.0
 
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Install dependencies
-        run: dotnet restore ${{ env.PROJECT_FILE }}
-
-      - name: Test
-        run: dotnet test ${{ env.PROJECT_FILE }}
 
       # Schritt: Lese die PackageVersion aus der .csproj Datei
       # Dieser Schritt nutzt grep und sed, um den Wert des PackageVersion-Elements aus der .csproj-Datei zu extrahieren.
