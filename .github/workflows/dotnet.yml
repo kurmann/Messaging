@@ -1,3 +1,4 @@
+# dotnet.yml ist ein GitHub Actions Workflow, der die Erstellung von NuGet-Paketen für ein .NET-Projekt ermöglicht.
 name: .NET CI/CD
 
 # Versionierungsstrategie:
