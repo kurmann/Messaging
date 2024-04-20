@@ -65,8 +65,12 @@ jobs:
       # - name: Push NuGet Package
       #  run: dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
-  call_release_drafter:
+  release_draft:
+    runs-on: ubuntu-latest
     needs: build_and_pack
-    uses: kurmann/GitHub.Workflows/.github/workflows/release-drafter.yml@main
-    secrets:
-      custom_github_token: ${{ secrets.GITHUB_TOKEN }}  # Übergibt das Standard-GITHUB_TOKEN unter neuem Namen
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run Release Drafter
+        uses: ./.github/workflows/release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
