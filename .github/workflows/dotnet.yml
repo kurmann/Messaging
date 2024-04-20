@@ -62,8 +62,8 @@ jobs:
             echo "Zwischenversion ist $version"
           fi
 
-      - name: Push NuGet Package
-        run: dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      # - name: Push NuGet Package
+      #  run: dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
 
   call_release_drafter:
     needs: build_and_pack
