@@ -69,7 +69,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build_and_pack
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Run Release Drafter
         uses: ./.github/workflows/release-drafter.yml
         env:
