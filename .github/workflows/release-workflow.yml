@@ -1,4 +1,4 @@
-# dotnet.yml ist ein GitHub Actions Workflow, der die Erstellung von NuGet-Paketen für ein .NET-Projekt ermöglicht.
+# release-workflow.yml ist ein Workflow, der die Erstellung von NuGet-Paketen und die Erstellung von Releases für ein .NET-Projekt automatisiert.
 name: .NET CI/CD
 
 # Versionierungsstrategie:
