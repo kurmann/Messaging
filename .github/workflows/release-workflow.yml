@@ -20,7 +20,7 @@ permissions:
 jobs:
 
   build-and-test:
-    uses: ./.github/workflows/build-test.yml@24-build-und-test-als-wiederverwendbaren-workflow
+    uses: ./.github/workflows/dotnet-build-test.yml@24-build-und-test-als-wiederverwendbaren-workflow
     with:
       project_path: 'src/Messaging/Messaging.csproj'
 
