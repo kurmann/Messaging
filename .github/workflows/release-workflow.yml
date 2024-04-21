@@ -19,12 +19,12 @@ permissions:
 
 jobs:
 
-  build-and-test:
+  build_and_test:
     uses: ./.github/workflows/dotnet-build-test.yml
     with:
       project_path: 'src/Messaging/Messaging.csproj'
 
-  nuget-pack:
+  nuget_pack:
     runs-on: ubuntu-latest
 
     env:
@@ -68,7 +68,7 @@ jobs:
 
   release_draft:
     runs-on: ubuntu-latest
-    needs: nuget-pack
+    needs: nuget_pack
     steps:
       - uses: actions/checkout@v4
       - name: Run Release Drafter
