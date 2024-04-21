@@ -1,4 +1,4 @@
-# dotnet.yml ist ein GitHub Actions Workflow, der die Erstellung von NuGet-Paketen für ein .NET-Projekt ermöglicht.
+# release-workflow.yml ist ein Workflow, der die Erstellung von NuGet-Paketen und die Erstellung von Releases für ein .NET-Projekt automatisiert.
 name: .NET CI/CD
 
 # Versionierungsstrategie:
@@ -18,7 +18,13 @@ permissions:
   pull-requests: read  # Ermöglicht das Lesen von PR-Informationen für den Release-Entwurf.
 
 jobs:
-  build_and_pack:
+
+  dotnet:
+    uses: ./.github/workflows/dotnet-build-test.yml
+    with:
+      project_path: 'src/Messaging/Messaging.csproj'
+
+  nuget_pack:
     runs-on: ubuntu-latest
 
     env:
@@ -27,18 +33,8 @@ jobs:
       BASE_VERSION: 1.0.0
 
     steps:
+
       - uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
-      - name: Install dependencies
-        run: dotnet restore ${{ env.PROJECT_FILE }}
-
-      - name: Test
-        run: dotnet test ${{ env.PROJECT_FILE }}
 
       # Schritt: Lese die PackageVersion aus der .csproj Datei
       # Dieser Schritt nutzt grep und sed, um den Wert des PackageVersion-Elements aus der .csproj-Datei zu extrahieren.
@@ -72,7 +68,7 @@ jobs:
 
   release_draft:
     runs-on: ubuntu-latest
-    needs: build_and_pack
+    needs: dotnet
     steps:
       - uses: actions/checkout@v4
       - name: Run Release Drafter
