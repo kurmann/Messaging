@@ -34,6 +34,8 @@ jobs:
 
     steps:
 
+      - uses: actions/checkout@v4
+
       # Schritt: Lese die PackageVersion aus der .csproj Datei
       # Dieser Schritt nutzt grep und sed, um den Wert des PackageVersion-Elements aus der .csproj-Datei zu extrahieren.
       # Der extrahierte Wert wird dann als Umgebungsvariable gesetzt, damit er in nachfolgenden Schritten verwendet werden kann.
