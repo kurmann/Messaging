@@ -19,7 +19,7 @@ permissions:
 
 jobs:
 
-  build_and_test:
+  dotnet:
     uses: ./.github/workflows/dotnet-build-test.yml
     with:
       project_path: 'src/Messaging/Messaging.csproj'
