@@ -68,7 +68,7 @@ jobs:
 
   release_draft:
     runs-on: ubuntu-latest
-    needs: nuget_pack
+    needs: dotnet
     steps:
       - uses: actions/checkout@v4
       - name: Run Release Drafter
