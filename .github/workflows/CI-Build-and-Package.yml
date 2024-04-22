@@ -2,11 +2,7 @@
 name: CI Build, Test, and Package
 
 on:
-  workflow_call:
-    inputs:
-      project_path:
-        required: true
-        type: string
+  push:
 
 jobs:
   build_and_test:
