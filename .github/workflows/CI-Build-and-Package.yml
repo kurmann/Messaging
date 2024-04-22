@@ -1,6 +1,5 @@
 # CI-Build-and-Package.yml
-
-name: Build and Test
+name: CI Build, Test, and Package
 
 on:
   workflow_call:
@@ -23,5 +22,22 @@ jobs:
       - name: Install dependencies
         run: dotnet restore ${{ inputs.project_path }}
 
+      - name: Build
+        run: dotnet build ${{ inputs.project_path }} --no-restore
+
       - name: Test
-        run: dotnet test ${{ inputs.project_path }}
+        run: dotnet test ${{ inputs.project_path }} --no-build
+
+  package:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Package NuGet
+        run: dotnet pack ${{ inputs.project_path }} --no-build -o nupkgs
