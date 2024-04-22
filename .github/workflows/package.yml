@@ -1,0 +1,22 @@
+# package.yml
+name: Package on Release Draft
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x' 
+          
+      - name: Extract version and package
+        run: |
+          echo "Extracting version from release tag."
+          # Hier kommt der Skript zum Extrahieren der Version und zum Paketieren
