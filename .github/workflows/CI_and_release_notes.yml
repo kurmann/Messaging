@@ -1,9 +1,10 @@
 # CI_and_release_notes.yml
-
 name: CI and Release Notes
 
 on:
   push:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
 
 jobs:
   build_test:
@@ -21,15 +22,21 @@ jobs:
       - name: Test
         run: dotnet test src/Messaging/Messaging.csproj --no-build
 
-  update_release_draft:
+  update_release_draft_and_package:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     needs: build_test
     steps:
       - uses: actions/checkout@v4
       - name: Run Release Drafter
         uses: release-drafter/release-drafter@v6
+        if: github.event.pull_request.merged == true
         with:
           config-name: 'release-drafter-config.yml'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      - name: Package
+        if: github.event.pull_request.merged == true || github.event_name == 'pull_request' && github.event.action == 'closed'
+        run: |
+          VERSION=$(echo "${{ github.event.pull_request.head.ref }}" | sed 's/refs\/tags\///')
+          dotnet pack src/Messaging/Messaging.csproj -p:PackageVersion=$VERSION --no-build -o nupkgs
