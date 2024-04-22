@@ -4,9 +4,6 @@ name: CI Build, Test, and Package
 
 on:
   push:
-    branches:
-      - main
-      - 'feature/**'
 
 jobs:
   build_and_test:
