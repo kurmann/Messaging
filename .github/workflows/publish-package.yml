@@ -1,38 +1,34 @@
-# publish-package.yml
 name: Publish NuGet Package on Release
 
 on:
-    push:
+  release:
+    types: [published]
+
 jobs:
   publish_github:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'  # Passende .NET SDK Version
-
+          dotnet-version: '8.0.x' 
       - name: Publish to GitHub Packages
         run: |
           echo "Publishing NuGet package to GitHub Packages."
-          # Hier Skript zum Veröffentlichen des Pakets auf GitHub Packages
-          # dotnet nuget push "nupkgs/*.nupkg" --source "github" --skip-duplicate
+          # Fügen Sie hier das Skript zum Veröffentlichen auf GitHub Packages hinzu
+          # Beispiel: dotnet nuget push "nupkgs/*.nupkg" --source "github" --skip-duplicate
 
   publish_nuget:
     runs-on: ubuntu-latest
-    needs: publish_github
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'  # Passende .NET SDK Version
-
+          dotnet-version: '8.0.x' 
       - name: Publish to NuGet.org
         run: |
           echo "Publishing NuGet package to NuGet.org."
-          # Hier Skript zum Veröffentlichen des Pakets auf NuGet.org
-          # dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          # Fügen Sie hier das Skript zum Veröffentlichen auf NuGet.org hinzu
+          # Beispiel: dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
