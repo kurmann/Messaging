@@ -1,5 +1,4 @@
-name: CI Build, Test, and Package
-
+name: Build and Test
 on:
   workflow_call:
     inputs:
