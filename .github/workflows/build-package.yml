@@ -1,8 +1,9 @@
+# build-package.yml
 name: Package on Release Draft
 
 on:
   release:
-    types: [created]
+    types: [created, edited]
 
 jobs:
   package:
@@ -17,5 +18,10 @@ jobs:
 
       - name: Extract version and package
         run: |
-          echo "Extracting version from release tag."
-          # Hier kommt der Skript zum Extrahieren der Version und zum Paketieren
+          echo "Fetching release information..."
+          RELEASE_INFO=$(curl -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ github.event.release.tag_name }})
+          VERSION=$(echo "$RELEASE_INFO" | jq -r '.tag_name')
+          echo "Extracted version: $VERSION"
+          
+          echo "Packing with version: $VERSION"
+          dotnet pack src/Messaging/Messaging.csproj -p:PackageVersion=$VERSION --no-build -o nupkgs
