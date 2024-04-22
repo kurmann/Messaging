@@ -1,14 +1,6 @@
 name: Build and Test
 on:
-  workflow_call:
-    inputs:
-      project_path:
-        required: true
-        type: string
-      dotnet_version:
-        required: true
-        type: string
-        default: '8.0.x'
+  push:
 
 jobs:
   build_and_test:
@@ -19,13 +11,12 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ inputs.dotnet_version }}
-
+          dotnet-version: '8.0.x'
       - name: Install dependencies
-        run: dotnet restore ${{ inputs.project_path }}
+        run: dotnet restore src/Messaging/Messaging.csproj
 
       - name: Build
-        run: dotnet build ${{ inputs.project_path }} --no-restore
+        run: dotnet build src/Messaging/Messaging.csproj --no-restore
 
       - name: Test
-        run: dotnet test ${{ inputs.project_path }} --no-build
+        run: dotnet test src/Messaging/Messaging.csproj --no-build
