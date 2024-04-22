@@ -1,0 +1,27 @@
+name: CI, Release Drafting, and Packaging
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build_test_package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Install dependencies
+        run: dotnet restore src/Messaging/Messaging.csproj
+      - name: Build
+        run: dotnet build src/Messaging/Messaging.csproj --no-restore
+      - name: Test
+        run: dotnet test src/Messaging/Messaging.csproj --no-build
+      - name: Run Release Drafter and Package
+        if: github.event.pull_request.merged == true
+        run: |
+          # Führen Sie hier den Release Drafter aus, falls benötigt
+          VERSION=$(echo "${{ github.event.pull_request.head.ref }}" | sed 's/refs\/tags\///')
+          dotnet pack src/Messaging/Messaging.csproj -p:PackageVersion=$VERSION --no-build -o nupkgs

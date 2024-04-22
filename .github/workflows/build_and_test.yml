@@ -1,6 +1,4 @@
-# CI_and_release_notes.yml
-
-name: CI and Release Notes
+name: Build and Test
 
 on:
   push:
@@ -20,16 +18,3 @@ jobs:
         run: dotnet build src/Messaging/Messaging.csproj --no-restore
       - name: Test
         run: dotnet test src/Messaging/Messaging.csproj --no-build
-
-  update_release_draft:
-    runs-on: ubuntu-latest
-    needs: build_test
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run Release Drafter
-        uses: release-drafter/release-drafter@v6
-        with:
-          config-name: 'release-drafter-config.yml'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
