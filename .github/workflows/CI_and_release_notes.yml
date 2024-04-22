@@ -22,6 +22,14 @@ jobs:
       - name: Test
         run: dotnet test src/Messaging/Messaging.csproj --no-build
 
+  # Der `update_release_draft_and_package`-Job verantwortet zwei Hauptfunktionen:
+  # 1. Er führt den Release Drafter aus, wenn ein Pull Request in den Hauptbranch gemerged wird.
+  #    Dies dient dazu, einen Release-Entwurf zu erstellen oder zu aktualisieren, der die Änderungen aus dem Pull Request enthält.
+  # 2. Er führt die Paketierung aus, wenn ein Pull Request gemerged oder geschlossen wird. Der Schritt nutzt den Namen des Feature-Branches
+  #    oder den Tag, der an den Commit angehängt ist, um die Versionsnummer für das NuGet-Paket zu bestimmen. Diese Paketierung geschieht
+  #    nur für Pull Requests, um zu gewährleisten, dass nur geprüfte und verifizierte Änderungen in Paketform veröffentlicht werden.
+  # Die `if`-Bedingungen innerhalb der Schritte stellen sicher, dass die Aktionen nur unter den definierten Umständen ausgeführt werden,
+  # um die Genauigkeit des Release-Managements und der Paketveröffentlichung zu gewährleisten.
   update_release_draft_and_package:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
