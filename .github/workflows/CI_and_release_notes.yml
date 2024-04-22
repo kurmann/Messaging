@@ -28,6 +28,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Run Release Drafter
         uses: release-drafter/release-drafter@v6
+        with:
+          config-name: 'release-drafter-config.yml'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
