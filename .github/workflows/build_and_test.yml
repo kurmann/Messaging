@@ -1,0 +1,46 @@
+name: CI Build, Test, and Package
+
+on:
+  workflow_call:
+    inputs:
+      project_path:
+        required: true
+        type: string
+      dotnet_version:
+        required: true
+        type: string
+        default: '8.0.x'
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Install dependencies
+        run: dotnet restore ${{ inputs.project_path }}
+
+      - name: Build
+        run: dotnet build ${{ inputs.project_path }} --no-restore
+
+      - name: Test
+        run: dotnet test ${{ inputs.project_path }} --no-build
+
+  package:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ inputs.dotnet_version }}
+
+      - name: Package NuGet
+        run: dotnet pack ${{ inputs.project_path }} --no-build -o nupkgs
