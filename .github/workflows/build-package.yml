@@ -1,8 +1,8 @@
-# package.yml
 name: Package on Release Draft
 
 on:
-  push:
+  release:
+    types: [created]
 
 jobs:
   package:
@@ -14,7 +14,7 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x' 
-          
+
       - name: Extract version and package
         run: |
           echo "Extracting version from release tag."
