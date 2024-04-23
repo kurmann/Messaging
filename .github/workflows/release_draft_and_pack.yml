@@ -5,30 +5,27 @@ on:
     types: [opened, synchronize, reopened]
 
 env:
-  CURRENT_VERSION: '' # Dieser Wert wird von GitHub aus dem letzten veröffentlichen Release ermittelt
-  CURRENT_RELEASE_NOTES: '' # Dieser Wert wird von GitHub aus dem letzten veröffentlichen Release ermittelt
+  CURRENT_VERSION: '' # Dieser Wert wird von GitHub aus dem letzten veröffentlichten Release ermittelt
+  CURRENT_RELEASE_NOTES: '' # Dieser Wert wird von GitHub aus dem letzten veröffentlichten Release ermittelt
   NEXT_MINOR_VERSION: '' # Dieser Wert wird in den Jobs berechnet
 
 jobs:
   get_current_release:
     runs-on: ubuntu-latest
     outputs:
-      release_version: ${{ steps.get_release.outputs.release_version }}
+      release_version: ${{ env.CURRENT_VERSION }} # Änderung zur Verwendung von env statt set-output
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Get latest release
-        id: get_release
         run: |
           RELEASE_JSON=$(gh release view --json tagName,body)
           RELEASE_NAME=$(echo "$RELEASE_JSON" | jq -r '.tagName')
           RELEASE_BODY=$(echo "$RELEASE_JSON" | jq -r '.body' | jq -sRr @json)
           echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
           echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
-          echo "::set-output name=release_version::$RELEASE_NAME"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          echo "CURRENT_VERSION=$RELEASE_NAME" >> $GITHUB_ENV # Direkt setzen der Umgebungsvariable
 
       - name: Print release information
         run: |
@@ -55,8 +52,6 @@ jobs:
     needs: [build_and_test, get_current_release]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
       - name: Calculate next minor version
         run: |
           VERSION="${{ needs.get_current_release.outputs.release_version }}"
@@ -66,9 +61,9 @@ jobs:
           MINOR="${VERSION_PARTS[1]}"
           PATCH="${VERSION_PARTS[2]}"
           NEXT_MINOR=$(($MINOR + 1))
-          NEXT_VERSION="v${MAJOR}.${NEXT_MINOR}.${PATCH}" # Fügt das 'v' wieder hinzu, falls Sie dies beibehalten möchten
+          NEXT_VERSION="v${MAJOR}.${NEXT_MINOR}.${PATCH}"
           echo "NEXT_MINOR_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
-          
+
       - name: Set up .NET for packaging
         uses: actions/setup-dotnet@v4
         with:
@@ -77,6 +72,3 @@ jobs:
       - name: Pack and create release draft
         run: |
           dotnet pack src/Messaging/Messaging.csproj -p:PackageVersion=${{ env.NEXT_MINOR_VERSION }} --no-build -o nupkgs
-          # Hier könnte auch der Code für den Release Drafter eingefügt werden, der auf NEXT_MINOR_VERSION basiert
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
