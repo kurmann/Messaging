@@ -1,64 +1,53 @@
-name: CI, Release Drafting, and Packaging
+# dotnet.yml ist ein GitHub Actions Workflow, der die Erstellung von NuGet-Paketen für ein .NET-Projekt ermöglicht.
+name: .NET CI/CD
+
+# Versionierungsstrategie:
+# Für den main-Branch werden Releases mit der in der .csproj-Datei festgelegten Version erstellt,
+# die manuell vor dem Merge angepasst werden sollte. Dies ermöglicht eine präzise Kontrolle über Major und Minor Releases.
+# Für alle anderen Branches werden automatische Zwischenreleases mit einem Datumssuffix generiert, um kontinuierliches Testing und Feedback
+# für Entwicklungsstände zu ermöglichen. Das Datumssuffix wird basierend auf dem aktuellen Datum und der Uhrzeit zum Zeitpunkt des Builds hinzugefügt,
+# was jede Version einzigartig macht.
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
+  push:
+    branches:
+      - '**'
 
-env:
-  CURRENT_VERSION: '' # Dieser Wert wird von GitHub aus dem letzten veröffentlichten Release ermittelt
-  CURRENT_RELEASE_NOTES: '' # Dieser Wert wird von GitHub aus dem letzten veröffentlichten Release ermittelt
-  NEXT_MINOR_VERSION: '' # Dieser Wert wird in den Jobs berechnet
+permissions:
+  contents: write  # Erlaubt das Erstellen von Releases und das Schreiben von Tags.
+  pull-requests: read  # Ermöglicht das Lesen von PR-Informationen für den Release-Entwurf.
 
 jobs:
-  get_current_release:
+  build_and_pack:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
 
-      - name: Get latest release
-        run: |
-          RELEASE_JSON=$(gh release view --json tagName,body)
-          RELEASE_NAME=$(echo "$RELEASE_JSON" | jq -r '.tagName')
-          RELEASE_BODY=$(echo "$RELEASE_JSON" | jq -r '.body' | jq -sRr @json)
-          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
-          echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
-          echo "CURRENT_VERSION=$RELEASE_NAME" >> $GITHUB_ENV
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    env:
+      PROJECT_FILE: src/Messaging/Messaging.csproj
+      # Deklaration der BASE_VERSION-Umgebungsvariable, die im Workflow mit der in der .csproj-Datei festgelegten Version überschrieben wird.
+      BASE_VERSION: 1.0.0
 
-  release_draft_and_pack:
-    needs: get_current_release
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      
-      - name: Restore dependencies
-        run: dotnet restore src/Messaging/Messaging.csproj
 
-      - name: Build and Test
-        run: |
-          dotnet build src/Messaging/Messaging.csproj --no-restore
-          dotnet test src/Messaging/Messaging.csproj --no-build
+      - name: Install dependencies
+        run: dotnet restore ${{ env.PROJECT_FILE }}
 
-      - name: Calculate next minor version
-        run: |
-          VERSION="${{ env.CURRENT_VERSION }}"
-          VERSION="${VERSION#"v"}" # Entfernt das 'v' am Anfang, falls vorhanden
-          IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
-          MAJOR="${VERSION_PARTS[0]}"
-          MINOR="${VERSION_PARTS[1]}"
-          PATCH="${VERSION_PARTS[2]}"
-          NEXT_MINOR=$(($MINOR + 1))
-          NEXT_VERSION="v${MAJOR}.${NEXT_MINOR}.${PATCH}"
-          echo "NEXT_MINOR_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+      - name: Test
+        run: dotnet test ${{ env.PROJECT_FILE }}
 
-      - name: Pack and create release draft
-        run: |
-          dotnet pack src/Messaging/Messaging.csproj -p:PackageVersion=${{ env.NEXT_MINOR_VERSION }} --no-build -o nupkgs
+  release_draft:
+    runs-on: ubuntu-latest
+    needs: build_and_pack
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Release Drafter
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: 'release-drafter-config.yml'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
