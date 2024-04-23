@@ -7,6 +7,7 @@ on:
 
 env:
   CSPROJ_FILE: src/Messaging/Messaging.csproj
+  DOTNET_VERSION: '8.0.x'
     
 jobs:
   setup:
@@ -32,7 +33,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' 
+          dotnet-version: ${{ env.DOTNET_VERSION }}
       
       - name: Restore dependencies
         run: dotnet restore ${{ env.CSPROJ_FILE }}
@@ -55,7 +56,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' 
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Publish to GitHub Packages
         run: |
@@ -70,7 +71,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' 
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Publish to NuGet.org
         run: |
