@@ -18,7 +18,7 @@ permissions:
   pull-requests: read  # Ermöglicht das Lesen von PR-Informationen für den Release-Entwurf.
 
 jobs:
-  build_and_pack:
+  build_and_test:
     runs-on: ubuntu-latest
 
     env:
@@ -42,7 +42,7 @@ jobs:
 
   release_draft:
     runs-on: ubuntu-latest
-    needs: build_and_pack
+    needs: build_and_test
     steps:
       - uses: actions/checkout@v4
       - name: Run Release Drafter
