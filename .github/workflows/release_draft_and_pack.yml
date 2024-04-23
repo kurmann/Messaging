@@ -16,7 +16,7 @@ jobs:
       release_version: ${{ steps.get_release.outputs.release_version }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Get latest release
         id: get_release
@@ -55,14 +55,18 @@ jobs:
     needs: [build_and_test, get_current_release]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Calculate next minor version
         run: |
-          IFS='.' read -ra VERSION_PARTS <<< "${{ needs.get_current_release.outputs.release_version }}"
+          VERSION="${{ needs.get_current_release.outputs.release_version }}"
+          VERSION="${VERSION#"v"}" # Entfernt das 'v' am Anfang, falls vorhanden
+          IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
           MAJOR="${VERSION_PARTS[0]}"
           MINOR="${VERSION_PARTS[1]}"
           PATCH="${VERSION_PARTS[2]}"
           NEXT_MINOR=$(($MINOR + 1))
-          NEXT_VERSION="${MAJOR}.${NEXT_MINOR}.${PATCH}"
+          NEXT_VERSION="v${MAJOR}.${NEXT_MINOR}.${PATCH}" # Fügt das 'v' wieder hinzu, falls Sie dies beibehalten möchten
           echo "NEXT_MINOR_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
           
       - name: Set up .NET for packaging
