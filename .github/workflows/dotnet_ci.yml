@@ -1,0 +1,44 @@
+name: .NET CI
+
+on:
+  push:
+    branches:
+      - '**'
+
+permissions:
+  contents: write  # Erlaubt das Erstellen von Releases und das Schreiben von Tags.
+  pull-requests: read  # Ermöglicht das Lesen von PR-Informationen für den Release-Entwurf.
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_FILE: src/Messaging/Messaging.csproj
+      DOTNET_VERSION: '8.0.x'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install dependencies
+        run: dotnet restore ${{ env.PROJECT_FILE }}
+
+      - name: Test
+        run: dotnet test ${{ env.PROJECT_FILE }}
+
+  release_draft:
+    runs-on: ubuntu-latest
+    needs: build_and_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Release Drafter
+        uses: release-drafter/release-drafter@v6
+        with:
+          config-name: 'release-drafter-config.yml'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
