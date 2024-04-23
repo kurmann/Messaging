@@ -12,8 +12,6 @@ env:
 jobs:
   get_current_release:
     runs-on: ubuntu-latest
-    outputs:
-      release_version: ${{ env.CURRENT_VERSION }} # Änderung zur Verwendung von env statt set-output
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -25,14 +23,14 @@ jobs:
           RELEASE_BODY=$(echo "$RELEASE_JSON" | jq -r '.body' | jq -sRr @json)
           echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
           echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
-          echo "CURRENT_VERSION=$RELEASE_NAME" >> $GITHUB_ENV # Direkt setzen der Umgebungsvariable
+          echo "CURRENT_VERSION=$RELEASE_NAME" >> $GITHUB_ENV
 
       - name: Print release information
         run: |
           echo "Release name (version): $RELEASE_NAME"
           echo "Release body: $RELEASE_BODY"
 
-  build_and_test:
+  release_draft_and_pack:
     needs: get_current_release
     runs-on: ubuntu-latest
     steps:
@@ -41,20 +39,18 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
-      - name: Install dependencies
+      
+      - name: Restore dependencies
         run: dotnet restore src/Messaging/Messaging.csproj
-      - name: Build
-        run: dotnet build src/Messaging/Messaging.csproj --no-restore
-      - name: Test
-        run: dotnet test src/Messaging/Messaging.csproj --no-build
 
-  release_draft_and_pack:
-    needs: [build_and_test, get_current_release]
-    runs-on: ubuntu-latest
-    steps:
+      - name: Build and Test
+        run: |
+          dotnet build src/Messaging/Messaging.csproj --no-restore
+          dotnet test src/Messaging/Messaging.csproj --no-build
+
       - name: Calculate next minor version
         run: |
-          VERSION="${{ needs.get_current_release.outputs.release_version }}"
+          VERSION="${{ env.CURRENT_VERSION }}"
           VERSION="${VERSION#"v"}" # Entfernt das 'v' am Anfang, falls vorhanden
           IFS='.' read -ra VERSION_PARTS <<< "$VERSION"
           MAJOR="${VERSION_PARTS[0]}"
@@ -64,11 +60,8 @@ jobs:
           NEXT_VERSION="v${MAJOR}.${NEXT_MINOR}.${PATCH}"
           echo "NEXT_MINOR_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
 
-      - name: Set up .NET for packaging
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
-
       - name: Pack and create release draft
         run: |
           dotnet pack src/Messaging/Messaging.csproj -p:PackageVersion=${{ env.NEXT_MINOR_VERSION }} --no-build -o nupkgs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
