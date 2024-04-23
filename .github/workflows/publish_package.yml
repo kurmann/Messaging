@@ -4,12 +4,14 @@ on:
   release:
     types: [published]
   workflow_dispatch:  # Erlaubt manuelles Auslösen des Workflows über die GitHub-Oberfläche
+
 env:
   CSPROJ_FILE: src/Messaging/Messaging.csproj
   DOTNET_VERSION: '8.0.x'
-      
+  LATEST_RELEASE_VERSION: '' # Wird im ersten Job gesetzt
+
 jobs:
-  setup:
+  get_latest_release_version:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
