@@ -3,32 +3,77 @@ name: Publish NuGet Package on Release
 on:
   release:
     types: [published]
+  workflow_dispatch:  # Erlaubt manuelles Auslösen des Workflows über die GitHub-Oberfläche
 
+env:
+  CSPROJ_FILE: src/Messaging/Messaging.csproj
+  DOTNET_VERSION: '8.0.x'
+    
 jobs:
-  publish_github:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: extract_version
+        run: |
+          TAG_NAME="${{ github.event.release.tag_name }}"
+          VERSION="${TAG_NAME#"v"}" # Entfernt das 'v' am Anfang, falls vorhanden
+          echo "Extracted version is $VERSION"
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+  build_package:
+    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' 
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+      
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.CSPROJ_FILE }}
+      
+      - name: Build
+        run: dotnet build ${{ env.CSPROJ_FILE }} --no-restore --configuration Release
+      
+      - name: Pack
+        run: |
+          echo "Using version $VERSION from setup job."
+          dotnet pack ${{ env.CSPROJ_FILE }} --no-build --configuration Release -p:PackageVersion=$VERSION -o nupkgs
+        env:
+          VERSION: ${{ needs.setup.outputs.version }}
+      
+  publish_github:
+    needs: build_package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
       - name: Publish to GitHub Packages
         run: |
           echo "Publishing NuGet package to GitHub Packages."
-          # Fügen Sie hier das Skript zum Veröffentlichen auf GitHub Packages hinzu
-          # Beispiel: dotnet nuget push "nupkgs/*.nupkg" --source "github" --skip-duplicate
+          dotnet nuget push "nupkgs/*.nupkg" --source "github" --skip-duplicate
 
   publish_nuget:
+    needs: build_package
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x' 
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
       - name: Publish to NuGet.org
         run: |
           echo "Publishing NuGet package to NuGet.org."
-          # Fügen Sie hier das Skript zum Veröffentlichen auf NuGet.org hinzu
-          # Beispiel: dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
