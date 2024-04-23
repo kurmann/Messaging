@@ -26,3 +26,27 @@ jobs:
         run: dotnet test src/Messaging/Messaging.csproj --no-build
   
   release_draft_and_pack:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calculate next minor version
+        run: |
+          IFS='.' read -ra VERSION_PARTS <<< "${{ env.CURRENT_VERSION }}"
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
+          NEXT_MINOR=$(($MINOR + 1))
+          NEXT_VERSION="${MAJOR}.${NEXT_MINOR}.${PATCH}"
+          echo "NEXT_MINOR_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+          
+      - name: Set up .NET for packaging
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Pack and create release draft
+        run: |
+          dotnet pack src/Messaging/Messaging.csproj -p:PackageVersion=${{ env.NEXT_MINOR_VERSION }} --no-build -o nupkgs
+          # Fügen Sie hier den Code für Release Drafter hinzu, der auf NEXT_MINOR_VERSION basiert
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
