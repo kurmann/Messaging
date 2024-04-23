@@ -23,6 +23,7 @@ jobs:
 
     env:
       PROJECT_FILE: src/Messaging/Messaging.csproj
+      DOTNET_VERSION: '8.0.x'
 
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +31,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install dependencies
         run: dotnet restore ${{ env.PROJECT_FILE }}
