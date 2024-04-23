@@ -1,12 +1,4 @@
-# dotnet.yml ist ein GitHub Actions Workflow, der die Erstellung von NuGet-Paketen für ein .NET-Projekt ermöglicht.
 name: .NET CI/CD
-
-# Versionierungsstrategie:
-# Für den main-Branch werden Releases mit der in der .csproj-Datei festgelegten Version erstellt,
-# die manuell vor dem Merge angepasst werden sollte. Dies ermöglicht eine präzise Kontrolle über Major und Minor Releases.
-# Für alle anderen Branches werden automatische Zwischenreleases mit einem Datumssuffix generiert, um kontinuierliches Testing und Feedback
-# für Entwicklungsstände zu ermöglichen. Das Datumssuffix wird basierend auf dem aktuellen Datum und der Uhrzeit zum Zeitpunkt des Builds hinzugefügt,
-# was jede Version einzigartig macht.
 
 on:
   push:
