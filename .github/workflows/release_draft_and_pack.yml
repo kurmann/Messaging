@@ -4,8 +4,13 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+env:
+  CURRENT_VERSION: '' # Dieser Wert wird von GitHub aus dem letzten veröffentlichen Release ermittelt
+  CURRENT_RELEASE_NOTES: '' # Dieser Wert wird von GitHub aus dem letzten veröffentlichen Release ermittelt
+  NEXT_MINOR_VERSION: '' # Dieser Wert wird in den Jobs berechnet
+
 jobs:
-  build_test_package:
+  build_and_test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,9 +24,29 @@ jobs:
         run: dotnet build src/Messaging/Messaging.csproj --no-restore
       - name: Test
         run: dotnet test src/Messaging/Messaging.csproj --no-build
-      - name: Run Release Drafter and Package
-        if: github.event.pull_request.merged == true
+  
+  release_draft_and_pack:
+    needs: build_and_test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Calculate next minor version
         run: |
-          # Führen Sie hier den Release Drafter aus, falls benötigt
-          VERSION=$(echo "${{ github.event.pull_request.head.ref }}" | sed 's/refs\/tags\///')
-          dotnet pack src/Messaging/Messaging.csproj -p:PackageVersion=$VERSION --no-build -o nupkgs
+          IFS='.' read -ra VERSION_PARTS <<< "${{ env.CURRENT_VERSION }}"
+          MAJOR="${VERSION_PARTS[0]}"
+          MINOR="${VERSION_PARTS[1]}"
+          PATCH="${VERSION_PARTS[2]}"
+          NEXT_MINOR=$(($MINOR + 1))
+          NEXT_VERSION="${MAJOR}.${NEXT_MINOR}.${PATCH}"
+          echo "NEXT_MINOR_VERSION=$NEXT_VERSION" >> $GITHUB_ENV
+          
+      - name: Set up .NET for packaging
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Pack and create release draft
+        run: |
+          dotnet pack src/Messaging/Messaging.csproj -p:PackageVersion=${{ env.NEXT_MINOR_VERSION }} --no-build -o nupkgs
+          # Fügen Sie hier den Code für Release Drafter hinzu, der auf NEXT_MINOR_VERSION basiert
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
