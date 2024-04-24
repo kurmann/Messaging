@@ -80,11 +80,10 @@ jobs:
       - name: Publish to GitHub Packages
         run: |
           echo "Publishing NuGet package to GitHub Packages."
-          for nupkg in ${{ github.workspace }}/nupkgs/*.nupkg; do
-            dotnet nuget push "$nupkg" \
-            --api-key ${{ secrets.GITHUB_TOKEN }} \
-            --source "github" \
-            --skip-duplicate
-          done
-        shell: bash
+          dotnet nuget push "${{ github.workspace }}/nupkgs/*.nupkg" \
+          --api-key ${{ secrets.GITHUB_TOKEN }} \
+          --source "github" \
+          --skip-duplicate
+        shell: pwsh
+      
       
