@@ -36,20 +36,20 @@ jobs:
 
   build_and_publish:
     needs: get_release
-    runs-on: windows-latest  # Ändere von ubuntu-latest zu windows-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-      
+
       - name: Restore dependencies
         run: dotnet restore ${{ env.CSPROJ_FILE }}
       
       - name: Build
         run: dotnet build ${{ env.CSPROJ_FILE }} --no-restore --configuration Release
-      
+
       - name: Pack
         run: |
           echo "Using version ${{ needs.get_release.outputs.release_version }} from setup job."
@@ -61,8 +61,14 @@ jobs:
           -p:RepositoryType="git" \
           --include-symbols -p:SymbolPackageFormat=snupkg \
           -o nupkgs
-        shell: bash # Verwende bash-Shell, um "--"-Argumente zu unterstützen
-      
+        shell: bash
+
+      - name: List output files
+        run: |
+          echo "Listing built packages in nupkgs directory:"
+          ls nupkgs/
+        shell: bash
+
       - name: Authenticate with GitHub package registry
         run: |
           dotnet nuget add source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
@@ -70,7 +76,7 @@ jobs:
           --username "${{ github.actor }}" \
           --password "${{ secrets.GITHUB_TOKEN }}"
         shell: bash
-      
+
       - name: Publish to GitHub Packages
         run: |
           echo "Publishing NuGet package to GitHub Packages."
@@ -78,3 +84,4 @@ jobs:
           --source "github" \
           --skip-duplicate
         shell: bash
+      
