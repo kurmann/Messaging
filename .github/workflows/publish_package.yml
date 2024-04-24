@@ -34,7 +34,7 @@ jobs:
       release_tag_name: ${{ steps.get_release.outputs.release_tag_name }}
       release_url: ${{ steps.get_release.outputs.release_url }}
 
-  build_package:
+  build_and_publish:
     needs: get_release
     runs-on: ubuntu-latest
     steps:
@@ -62,35 +62,10 @@ jobs:
           --include-symbols -p:SymbolPackageFormat=snupkg \
           -o nupkgs
       
-  publish_github:
-    needs: build_package
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
       - name: Authenticate with GitHub package registry
         run: dotnet nuget add source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --name "github" --username "${{ github.actor }}" --password "${{ secrets.GITHUB_TOKEN }}"
-      - name: Restore dependencies
-        run: dotnet restore
-      - name: Build
-        run: dotnet build ${{ env.CSPROJ_FILE }} --no-restore --configuration Release
-      - name: Pack
-        run: |
-          echo "Using version ${{ needs.get_release.outputs.release_version }} from setup job."
-          dotnet pack ${{ env.CSPROJ_FILE }} --no-build --configuration Release \
-          -p:PackageVersion=${{ needs.get_release.outputs.release_version }} \
-          -p:PackageReleaseNotes=${{ needs.get_release.outputs.release_url }} \
-          -p:PackageProjectUrl="https://github.com/${{ github.repository }}" \
-          -p:RepositoryUrl="https://github.com/${{ github.repository }}.git" \
-          -p:RepositoryType="git" \
-          --include-symbols -p:SymbolPackageFormat=snupkg \
-          -o nupkgs
+      
       - name: Publish to GitHub Packages
         run: |
           echo "Publishing NuGet package to GitHub Packages."
           dotnet nuget push "nupkgs/*.nupkg" --source "github" --skip-duplicate
-
-
