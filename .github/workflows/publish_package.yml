@@ -59,6 +59,7 @@ jobs:
           -p:PackageProjectUrl="https://github.com/${{ github.repository }}" \
           -p:RepositoryUrl="https://github.com/${{ github.repository }}.git" \
           -p:RepositoryType="git" \
+          --include-symbols -p:SymbolPackageFormat=snupkg \
           -o nupkgs
       
   publish_github:
