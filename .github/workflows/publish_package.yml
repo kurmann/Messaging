@@ -69,22 +69,3 @@ jobs:
           ls nupkgs/
         shell: bash
 
-      - name: Authenticate with GitHub package registry
-        run: |
-          dotnet nuget add source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" \
-          --name "github" \
-          --username "${{ github.actor }}" \
-          --password "${{ secrets.GITHUB_TOKEN }}"
-        shell: bash
-
-      - name: Publish to GitHub Packages
-        run: |
-          echo "Publishing NuGet package to GitHub Packages."
-          dotnet nuget push "nupkgs/*.nupkg" `
-          --api-key ${{ secrets.GITHUB_TOKEN }} `
-          --source "github" `
-          --skip-duplicate
-        shell: pwsh # Use PowerShell to avoid wildcards issues
-      
-      
-      
