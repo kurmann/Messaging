@@ -8,28 +8,34 @@ on:
 env:
   CSPROJ_FILE: src/Messaging/Messaging.csproj
   DOTNET_VERSION: '8.0.x'
-  LATEST_RELEASE_VERSION: '' # Wird im ersten Job gesetzt
 
 jobs:
-  get_latest_release_version:
+  get_release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
+      - name: Checkout code
+        uses: actions/checkout@v4
+    
       - name: Get latest release
+        id: get_release
         run: |
-          RELEASE_JSON=$(gh release view --json tagName,body)
-          RELEASE_NAME=$(echo "$RELEASE_JSON" | jq -r '.tagName')
-          RELEASE_BODY=$(echo "$RELEASE_JSON" | jq -r '.body' | jq -sRr @json)
-          RELEASE_VERSION="${RELEASE_NAME#"v"}"  # Entfernt das 'v' am Anfang, falls vorhanden
-          echo "RELEASE_NAME=$RELEASE_NAME" >> $GITHUB_ENV
-          echo "RELEASE_BODY=$RELEASE_BODY" >> $GITHUB_ENV
-          echo "LATEST_RELEASE_VERSION=$RELEASE_VERSION" >> $GITHUB_ENV
+          RELEASE_JSON=$(gh release view --json tagName,name,url)
+          RELEASE_TAG_NAME=$(echo "$RELEASE_JSON" | jq -r '.tagName')
+          RELEASE_NAME=$(echo "$RELEASE_JSON" | jq -r '.name')
+          RELEASE_URL=$(echo "$RELEASE_JSON" | jq -r '.url')
+          RELEASE_VERSION="${RELEASE_TAG_NAME#"v"}"
+          echo "release_version=$RELEASE_VERSION" >> "$GITHUB_OUTPUT"
+          echo "release_tag_name=$RELEASE_TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "release_url=$RELEASE_URL" >> "$GITHUB_OUTPUT"
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    outputs:
+      release_version: ${{ steps.get_release.outputs.release_version }}
+      release_tag_name: ${{ steps.get_release.outputs.release_tag_name }}
+      release_url: ${{ steps.get_release.outputs.release_url }}
 
   build_package:
-    needs: get_latest_release_version
+    needs: get_release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,8 +52,8 @@ jobs:
       
       - name: Pack
         run: |
-          echo "Using version $LATEST_RELEASE_VERSION from setup job."
-          dotnet pack ${{ env.CSPROJ_FILE }} --no-build --configuration Release -p:PackageVersion=$LATEST_RELEASE_VERSION -o nupkgs
+          echo "Using version ${{ needs.get_release.outputs.release_version }} from setup job."
+          dotnet pack ${{ env.CSPROJ_FILE }} --no-build --configuration Release -p:PackageVersion=${{ needs.get_release.outputs.release_version }} -o nupkgs
       
   publish_github:
     needs: build_package
@@ -77,4 +83,4 @@ jobs:
       - name: Publish to NuGet.org
         run: |
           echo "Publishing NuGet package to NuGet.org."
-          dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+          # dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
