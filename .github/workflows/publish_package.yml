@@ -36,7 +36,7 @@ jobs:
 
   build_and_publish:
     needs: get_release
-    runs-on: ubuntu-latest
+    runs-on: windows-latest  # Ändere von ubuntu-latest zu windows-latest
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
@@ -63,11 +63,9 @@ jobs:
           -o nupkgs
       
       - name: Authenticate with GitHub package registry
-        run: dotnet nuget add source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --name "github" --username "${{ github.actor }}" --password "${{ secrets.GITHUB_TOKEN }}" --store-password-in-clear-text
-
+        run: dotnet nuget add source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --name "github" --username "${{ github.actor }}" --password "${{ secrets.GITHUB_TOKEN }}"
+      
       - name: Publish to GitHub Packages
         run: |
           echo "Publishing NuGet package to GitHub Packages."
-          dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate
-    
-    
+          dotnet nuget push "nupkgs/*.nupkg" --source "github" --skip-duplicate
