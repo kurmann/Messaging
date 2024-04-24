@@ -52,10 +52,8 @@ jobs:
           -p:RepositoryType="git" \
           --include-symbols -p:SymbolPackageFormat=snupkg \
           -o nupkgs
-        shell: bash
 
       - name: List output files
         run: |
           echo "Listing built packages in nupkgs directory:"
           ls nupkgs/
-        shell: bash
