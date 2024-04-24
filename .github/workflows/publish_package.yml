@@ -61,6 +61,7 @@ jobs:
           -p:RepositoryType="git" \
           --include-symbols -p:SymbolPackageFormat=snupkg \
           -o nupkgs
+        shell: bash # Verwende bash-Shell, um "--"-Argumente zu unterstützen
       
       - name: Authenticate with GitHub package registry
         run: |
@@ -68,6 +69,7 @@ jobs:
           --name "github" \
           --username "${{ github.actor }}" \
           --password "${{ secrets.GITHUB_TOKEN }}"
+        shell: bash
       
       - name: Publish to GitHub Packages
         run: |
@@ -75,3 +77,4 @@ jobs:
           dotnet nuget push "nupkgs/*.nupkg" \
           --source "github" \
           --skip-duplicate
+        shell: bash
