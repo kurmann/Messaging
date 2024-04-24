@@ -53,7 +53,7 @@ jobs:
       - name: Pack
         run: |
           echo "Using version ${{ needs.get_release.outputs.release_version }} from setup job."
-            dotnet pack ${{ env.CSPROJ_FILE }} --no-build --configuration Release -p:PackageVersion=${{ needs.get_release.outputs.release_version }} -p:PackageReleaseNotes=${{ needs.get_release.outputs.release_url }} -o nupkgs
+          dotnet pack ${{ env.CSPROJ_FILE }} --no-build --configuration Release -p:PackageVersion=${{ needs.get_release.outputs.release_version }} -p:PackageReleaseNotes=${{ needs.get_release.outputs.release_url }} -p:PackageProjectUrl="https://github.com/${{ github.repository }}" -p:RepositoryUrl="https://github.com/${{ github.repository }}.git" -p:RepositoryType="git" -o nupkgs
       
   publish_github:
     needs: build_package
