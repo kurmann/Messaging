@@ -38,25 +38,28 @@ jobs:
       
       - name: Restore dependencies
         run: dotnet restore ${{ env.CSPROJ_FILE }}
+        shell: pwsh
       
       - name: Build
         run: dotnet build ${{ env.CSPROJ_FILE }} --no-restore --configuration Release
+        shell: pwsh
 
       - name: Pack
         run: |
-          echo "Using version $RELEASE_VERSION from setup job."
+          echo "Using version $env:RELEASE_VERSION from setup job."
           dotnet pack ${{ env.CSPROJ_FILE }} --no-build --configuration Release \
-          -p:PackageVersion=$RELEASE_VERSION \
-          -p:PackageReleaseNotes=$RELEASE_URL \
+          -p:PackageVersion=$env:RELEASE_VERSION \
+          -p:PackageReleaseNotes=$env:RELEASE_URL \
           -p:PackageProjectUrl="https://github.com/${{ github.repository }}" \
           -p:RepositoryUrl="https://github.com/${{ github.repository }}.git" \
           -p:RepositoryType="git" \
           --include-symbols -p:SymbolPackageFormat=snupkg \
           -o nupkgs
-        shell: bash
+        shell: pwsh
 
       - name: List output files
         run: |
           echo "Listing built packages in nupkgs directory:"
           ls nupkgs/
-        shell: bash
+        shell: pwsh
+  
