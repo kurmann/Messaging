@@ -68,10 +68,19 @@ jobs:
           echo "Listing built packages in nupkgs directory:"
           ls nupkgs/
         shell: bash
-        
+
       - name: Push NuGet Package
         run: |
           cd nupkgs
           dotnet nuget push "*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
         shell: pwsh
+
+      - name: Push to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        run: |
+          cd nupkgs
+          dotnet nuget push "*.nupkg" --api-key $env:GITHUB_TOKEN --source "https://nuget.pkg.github.com/${{ github.repository_owner }}" --skip-duplicate
+        shell: pwsh
+    
       
