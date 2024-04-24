@@ -71,23 +71,26 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
-
+      - name: Authenticate with GitHub package registry
+        run: dotnet nuget add source "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json" --name "github" --username "${{ github.actor }}" --password "${{ secrets.GITHUB_TOKEN }}"
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build ${{ env.CSPROJ_FILE }} --no-restore --configuration Release
+      - name: Pack
+        run: |
+          echo "Using version ${{ needs.get_release.outputs.release_version }} from setup job."
+          dotnet pack ${{ env.CSPROJ_FILE }} --no-build --configuration Release \
+          -p:PackageVersion=${{ needs.get_release.outputs.release_version }} \
+          -p:PackageReleaseNotes=${{ needs.get_release.outputs.release_url }} \
+          -p:PackageProjectUrl="https://github.com/${{ github.repository }}" \
+          -p:RepositoryUrl="https://github.com/${{ github.repository }}.git" \
+          -p:RepositoryType="git" \
+          --include-symbols -p:SymbolPackageFormat=snupkg \
+          -o nupkgs
       - name: Publish to GitHub Packages
         run: |
           echo "Publishing NuGet package to GitHub Packages."
           dotnet nuget push "nupkgs/*.nupkg" --source "github" --skip-duplicate
 
-  publish_nuget:
-    needs: build_package
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Publish to NuGet.org
-        run: |
-          echo "Publishing NuGet package to NuGet.org."
-          # dotnet nuget push "nupkgs/*.nupkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
