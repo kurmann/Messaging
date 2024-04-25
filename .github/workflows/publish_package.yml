@@ -5,6 +5,11 @@ on:
     types: [published]
   workflow_dispatch:  # Erlaubt manuelles Auslösen des Workflows über die GitHub-Oberfläche
 
+permissions:
+  contents: write
+  packages: write
+  pull-requests: read
+
 env:
   CSPROJ_FILE: src/Messaging/Messaging.csproj
   DOTNET_VERSION: '8.0.x'
