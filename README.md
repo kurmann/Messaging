@@ -55,36 +55,3 @@ Dieses Projekt ist unter der Apache 2.0 Lizenz lizenziert - siehe die [LICENSE](
 ## Kontakt
 
 Falls Sie Fragen haben oder Unterstützung benötigen, erstellen Sie bitte ein Issue im GitHub-Repository.
-
-## Änderungsverlauf
-
-Dieses Projekt hält sich an die Semantische Versionierung (SemVer).
-
-### Unveröffentlicht
-
-- keine
-
-### 0.3 - 2024-04-07
-
-#### Hinzugefügt
-
-- Vereinfachter Workflow für Zwischenreleases mit automatischer Datumsvergabe bei Vorschauversionen
-
-#### Geändert
-
-- Weiterentwicklungen des Legacy-Messagingdienstes
-- Korrekte Überschriftenhierarchie beim Readme
-
-### 0.2 - 2024-04-06
-
-#### Hinzugefügt
-
-- Integration bestehender Messaging-Dienst aus dem eigenen Projekt "Infuse Media Integrator."
-- Dieses ChangeLog in die Readme-Datei eingebettet damit, aufgrund Restriktionen von NuGet, dieses Changelog direkt in das NuGet-Packet eingebettet wird.
-
-### 0.1 - 2024-04-06
-
-#### Hinzugefügt
-
-- Dieses Changelog erstellt
-- Klassenbibliothek aus dem eigenen [.NET-Template](https://github.com/kurmann/Templates)
