@@ -13,10 +13,6 @@
     <!-- Package-Tages zur Katalogisierung auf Nuget.org. Mehrere Tags mit Semikolen ";" trennen. -->
     <PackageTags>Messaging; ClassLibrary</PackageTags>
 
-    <!-- Die URL des GIT-Repositories -->
-    <RepositoryUrl>https://github.com/kurmann/Messaging</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-
     <!-- Die Kurzbeschreibung des NuGet-Packets. Die längere Beschreibung wird als README.md eingebunden -->
     <Description>Leichtgewichtiger, asynchroner Nachrichtendienst für .NET-Anwendungen für Typ-sichere Nachrichten-Kommunikation.</Description>
 
