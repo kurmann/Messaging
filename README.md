@@ -44,10 +44,6 @@ messageService.Subscribe<MyMessage>(async (msg) =>
 
 Bitte schauen Sie sich die `MessageService`-Klasse für weitere Konfigurationsmöglichkeiten und erweiterte Nutzung an.
 
-## Mitwirken
-
-Wir freuen uns über Beiträge in Form von Pull Requests, Bug Reports oder Feature Requests. Bitte lesen Sie hierzu unsere [CONTRIBUTING.md](CONTRIBUTING.md).
-
 ## Lizenz
 
 Dieses Projekt ist unter der Apache 2.0 Lizenz lizenziert - siehe die [LICENSE](LICENSE) Datei für Details.
